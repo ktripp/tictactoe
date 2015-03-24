@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block body %}
+    <div id="main">
+        <div class="left">
+            <div class="display_push"></div>
+            <div id="human"><p>Your Turn!</p></div>
+            <div id="start_over"><p>Try again?</p></div>
+        </div>
+        <div class="middle">
+            <div class="container">
+                <div class="row">
+                    <div class="square" id="00"></div>
+                    <div class="square" id="01"></div>
+                    <div class="square" id="02"></div>
+                </div>
+                <div class="row">
+                    <div class="square" id="10"></div>
+                    <div class="square" id="11"></div>
+                    <div class="square" id="12"></div>
+                </div>
+                <div class="row">
+                    <div class="square" id="20"></div>
+                    <div class="square" id="21"></div>
+                    <div class="square" id="22"></div>
+                </div>
+            </div>
+        </div>
+        <div class="right">
+            <div class="display_push"></div>
+            <div id="computer"><p>Computer's Turn!</p></div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}
+    <div class="error_container">
+      <div class="error">
+        <h1>Something bad happened ☹</h3>
+        <p>{{ error }}</p>
+        <p>{{ description|safe }}</p>
+      </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,168 @@
+html { height: 100% }
+
+body {
+    height: 100%; 
+    width: 100%; 
+    min-width: 1415px;
+    margin: 0;
+    padding: 0;
+    background: url("images/bkgd.png") 50% 50% transparent;
+}
+
+h1, h3 {
+    color: #FF6B6B;
+    font-family: 'Josefin Sans', sans-serif;
+}
+
+h3, p {
+    margin-left: 30px;
+    display: inline;
+}
+
+.wrapper {
+    height: 100%;
+    margin: 0 auto -50px;
+}
+
+.header {
+    font-size: 60px;
+    font-weight: bold;
+    font-family: 'Aclonica', sans-serif;
+    color: #FF6B6B;
+    text-shadow: -2px 2px 0px #C7F464;
+}
+
+.top {
+    padding-top: 50px;
+    width: 33%;
+    margin: 0 auto;
+}
+
+.subheader {
+    font-size: 30px;
+    font-family: 'Josefin Sans', sans-serif;
+    margin-top: -40px;
+}
+
+.left {
+    float: left;
+    width: 33%;
+}
+
+.middle {
+    display: inline-block;
+    width: 33%;
+}
+
+.right {
+    float: right;
+    width: 33%;
+}
+
+.container, .error_container {
+    display: inline-block;
+    background: #C7F464;
+    padding: 4px 4px 0 4px;
+    transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    position: relative;
+    top: 265px;
+}
+
+.square {
+    width: 150px;
+    height: 150px;
+    display: inline-block;
+    background: #333333;
+    cursor: pointer;
+}
+
+.ex:after, .oh:after {
+    font-family: 'Aclonica', sans-serif;
+    font-style: normal;
+    font-size: 155px;
+    color: #4ECDC4;
+    display: table;
+    text-shadow: 2px 2px 0px #C7F464;
+    margin: 0 auto;
+    margin-top: -5px;
+}
+
+.ex:after {
+    content: "X";
+}
+
+.oh:after {
+    content: "O";
+    color: #FF6B6B;
+}
+
+#human, #computer {
+    position: relative;
+    top: 50px;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 48px;
+    color: #C7F454;
+}
+
+#human p, #computer p {
+    width: 100%;
+    text-align: center;
+    display: table;
+    margin-left: 0px;
+    margin-bottom: 25px;
+}
+
+.win { background: rgb(40, 40, 40); }
+
+#start_over {
+    top: 75px;
+    position: relative;
+    text-align: center;
+}
+
+#start_over p {
+    margin-left: 0px;
+    font-family: 'Aclonica', sans-serif;
+    color: #FF6B6B;
+    font-size: 26px;
+}
+
+#start_over:hover {
+    cursor: pointer;
+}
+
+.display_push {
+    position: relative;
+    width: 100%;
+    margin: 2px;
+}
+
+.footer, .push {
+    width: 120px;
+    margin: 0 auto;
+    height: 50px;
+    font-size: 15px;
+    font-family: 'Josefin Sans', sans-serif;
+    color: white;
+}
+
+#footer a {
+    text-decoration: none;
+    color: #4ECDC4;
+}
+
+.error_container { background: none; }
+
+.error {
+    font-size: 22px;
+    margin-top: 100px;
+}
+
+.error p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 40px;
+}

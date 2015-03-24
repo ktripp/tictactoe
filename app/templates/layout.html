@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <title>Tic Tac Toe!</title>
+  <head>
+    <!-- Styling -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Playfair+Display:400italic|Josefin+Sans|Aclonica">
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script>
+        // try loading JQuery from cache first, otherwise include the resource file
+        window.jQuery || document.write("<script src='{{ url_for('static', filename='third_party/jquery-2.1.1.min.js') }}'>\x3C/script>")
+    </script>
+
+    <!-- Javascript -->
+    <script type="text/javascript" src="{{ url_for('static', filename='tictactoe.js' )}}"></script>
+    <script type="text/javascript">
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};  // base URI of the application
+        console.log({{error}})
+    </script>
+  </head>
+
+  <body>
+    <div class="wrapper">
+        {% block head %}
+        <div class="top">
+            <p class="header">Tic Tac Toe!</p>
+        </div>
+        {% endblock %}
+    
+        {% block body %} {% endblock %}
+        <div class="push"></div>
+    </div>
+
+    {% block footer %}
+    <div class="footer">
+        <div id="footer">© 2015 <a href="http://www.katripp.com" target="_blank">Kelsey Tripp</a></div>
+    </div>
+    {% endblock %}
+  </body>
+
+</html>
