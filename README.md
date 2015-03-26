@@ -21,20 +21,6 @@ Directory Structure
         * **app/static/third_party/** - external JS libraries (JQuery)
     * **app/templates/** - Jinja2 HTML templates
 
-Third-Party Libraries
----------------------
-The following third-party Javascript libraries or APIs are used:
-
-- [jQuery](http://jquery.com/)
-
-The following Python modules were used in development and/or deployment:
-
-- [Flask](http://flask.pocoo.org/) (0.10.1)
-- [gunicorn](http://gunicorn.org/) (19.1.0)
-- [Jinja2](http://jinja.pocoo.org/docs/) (2.7.3)
-- [virtualenv](https://pypi.python.org/pypi/virtualenv) (1.11.6)
-
-
 Future Work
 -----------
 There are always areas that can be iterated upon and improved.  Possibilities for future improvement include:
@@ -47,4 +33,5 @@ There are always areas that can be iterated upon and improved.  Possibilities fo
 Author
 ------
 **Kelsey Tripp** (www.katripp.com)
+
 (c) 2015
