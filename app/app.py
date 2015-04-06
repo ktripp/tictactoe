@@ -2,25 +2,39 @@
 
 from flask import *
 from urllib2 import urlopen, HTTPError
-import json, decimal
+import json, uuid, time
 from tictactoe import *
 
-class TicTacToeApp(Flask):
+UID_KEY = "ttt_id"
+
+class TTTManager(Flask):
     """
-    Flask application that creates a TicTacToe game.
+    Keeps track of and creates new games.
     """
     def __init__(self, *args, **kwargs):
-        super(TicTacToeApp, self).__init__(*args, **kwargs)
-        self.human = EX
-        self.game = TicTacToe(self.human)
+        super(TTTManager, self).__init__(*args, **kwargs)
+        self.sessions = {}
 
-    def setHumanPlayer(self, symbol):
-        self.human = symbol
+    def createGame(self, id):
+        self.cleanUpGames()
+        self.sessions[id] = { "game": TicTacToe(EX),
+                              "lastAccess": time.time() }
 
-    def restartGame(self):
-        self.game = TicTacToe(self.human)
+    def getGame(self, id):
+        if id not in self.sessions:
+            return None
+        else:
+            self.sessions[id]["lastAccess"] = time.time()
+            return self.sessions[id]["game"]
 
-app = TicTacToeApp(__name__, static_folder='static')
+    def cleanUpGames(self):
+        # remove any games that are more than an hour old
+        for uid, game in self.sessions.iteritems():
+            if time.time() - self.sessions[uid]["lastAccess"] > 3600:
+                del self.sessions[uid]
+
+
+app = TTTManager(__name__, static_folder='static')
 
 
 """ API Functions """
@@ -33,15 +47,30 @@ class App():
         """
         Renders the home page of the application.
         """
-        app.restartGame()
-        return render_template('index.html')
+        # get the uid if there is one
+        uid = request.cookies.get(UID_KEY, None)
+        if not uid:
+            uid = str(uuid.uuid4())
+            # create a new game for this user's uid
+            app.createGame(uid)
+        if not app.getGame(uid):
+            app.createGame(uid)
+
+        # set the cookie to remember this user
+        resp = make_response(render_template('index.html'))
+        resp.set_cookie(UID_KEY, uid)
+        return resp
 
     @app.route('/state')
     def getGameState():
         """
         Returns the current state of the TicTacToe game.
         """
-        resp = {"gameState": app.game.getGameState()} 
+        uid = request.cookies.get(UID_KEY, None)
+        if not uid or not app.getGame(uid):
+            return App.constructErrorResponse("No game is currently being played.", 400)
+        else:
+            resp = {"gameState": app.getGame(uid).getGameState()} 
         return jsonify(resp=resp)
 
     @app.route('/action/respond', methods=['PUT'])
@@ -50,24 +79,29 @@ class App():
         Gets a move to place on the board from a human player,
         responds to the move, and returns the game state.
         """
-        # get the request values
-        req = request.get_json()
-        if "row" in req and "col" in req:
-            row = int(req["row"])
-            col = int(req["col"])
-            
-            # make the move
-            app.game.move(row, col, app.human)
-
-        # get the computer's response
-        loc = app.game.respondToMove()
-        if loc is not None:
-            row, col = loc
-            resp = {"row": row,
-                    "col": col,
-                    "gameState": app.game.getGameState()}
+        uid = request.cookies.get(UID_KEY, None)
+        if not uid:
+            return App.constructErrorResponse("No game is currently being played.", 400)
         else:
-            resp = {"gameState": app.game.getGameState()}
+            game = app.getGame(uid)
+            # get the request values
+            req = request.get_json()
+            if "row" in req and "col" in req:
+                row = int(req["row"])
+                col = int(req["col"])
+                
+                # make the move
+                game.move(row, col, EX)
+
+            # get the computer's response
+            loc = game.respondToMove()
+            if loc is not None:
+                row, col = loc
+                resp = {"row": row,
+                        "col": col,
+                        "gameState": game.getGameState()}
+            else:
+                resp = {"gameState": game.getGameState()}
 
         # return a JSON response
         return jsonify(resp=resp)
@@ -77,7 +111,10 @@ class App():
         """
         Restarts the TicTacToe game.
         """
-        app.restartGame()
+        uid = request.cookies.get(UID_KEY, None)
+        if not uid:
+            uid = str(uuid.uuid4())
+        app.createGame(uid)
         return jsonify({'status': 'OK'})
 
     @app.errorhandler(400)
@@ -91,6 +128,15 @@ class App():
         if "description" not in error:
             return render_template('error.html', error=error, description=""), 500
         return render_template('error.html', error=error, description=error.get_description()), error.code
+
+    @staticmethod
+    def constructErrorResponse(errorMsg, errorCode):
+        """
+        Constructs an error response.
+        """
+        error = { "error": errorMsg,
+                  "status": errorCode }
+        return jsonify(resp=error)
 
 
 """ The main application """

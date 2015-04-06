@@ -58,7 +58,7 @@ $(document).ready(function () {
                 },
                 div: div,
                 symbol: symbol
-            }
+            };
         };
 
         /**
@@ -68,8 +68,8 @@ $(document).ready(function () {
         var TicTacToe = {
             settings: {
                 players: {
-                    computer: Player("oh", true),
-                    human: Player("ex", false)
+                    computer: new Player("oh", true),
+                    human: new Player("ex", false)
                 },
 
                 currentPlayer: "ex",
@@ -94,6 +94,9 @@ $(document).ready(function () {
 
                 // enable clicking on squares
                 this.enableClicks();
+
+                // set the game state if already in progress
+                this.setGameState();
             },
 
             /**
@@ -107,39 +110,78 @@ $(document).ready(function () {
             },
 
             /**
+             * Resets the squares to be blank.
+             */
+            resetSquares: function () {
+                // add and remove appropriate classes
+                s.squares.each(function () {
+                    $(this).removeClass(s.players.human.symbol);
+                    $(this).removeClass(s.players.computer.symbol);
+                    $(this).removeClass("win");
+                    $(this).removeClass("clicked");
+                });
+                // enable clicking on squares
+                this.enableClicks();
+            },
+
+            /**
              * Restarts the game on the server side as well as re-setting
              * the UI elements.
              */
             restartGame: function () {
-                // restart the game   
+                // get the game state from the server
                 $.ajax({
-                    url: $SCRIPT_ROOT + '/action/restart',
-                    method: "PUT",
+                    url: $SCRIPT_ROOT + '/state',
+                    method: "GET",
                     dataType: "json",
                     context: this,
                     success: function (data) {
-                        // re-initialize game
-                        this.init();
+                        // restart game if it is over
+                        if (data.resp.gameState.gameOver) {
+                            $.ajax({
+                                url: $SCRIPT_ROOT + '/action/restart',
+                                method: "PUT",
+                                dataType: "json",
+                                context: this,
+                                success: function () {
+                                    // re-initialize game
+                                    this.init();
 
-                        // reset the messaging
-                        s.players.human.setTurnMessage();
-                        s.players.computer.setTurnMessage();
+                                    // reset the messaging
+                                    s.players.human.setTurnMessage();
+                                    s.players.computer.setTurnMessage();
 
-                        // add and remove appropriate classes
-                        s.squares.each(function () {
-                            $(this).removeClass(s.players.human.symbol);
-                            $(this).removeClass(s.players.computer.symbol);
-                            $(this).removeClass("win");
-                            $(this).removeClass("clicked");
-                        });
+                                    // add and remove appropriate classes
+                                    this.resetSquares();
 
-                        // reset player information
-                        s.currentPlayer = s.players.human.symbol;
-
-                        // enable clicking on squares
-                        this.enableClicks();
+                                    // reset player information
+                                    s.currentPlayer = s.players.human.symbol;
+                                }
+                            });
+                        } else {
+                            // the game has been restarted in another window
+                            this.resetSquares();
+                            // reset the messaging
+                            $("#start_over").hide();
+                            s.players.computer.div.hide();
+                            s.players.human.setTurnMessage();
+                            s.players.computer.setTurnMessage();
+                            s.currentPlayer = s.players.human.symbol;
+                            this.setGameState();
+                        }
                     }
                 });
+            },
+
+            setCurrentPlayer: function (player) {
+                s.currentPlayer = player;
+                if (s.currentPlayer === s.players.human.symbol) {
+                    s.players.human.div.show();
+                    s.players.computer.div.hide();
+                } else {
+                    s.players.human.div.hide();
+                    s.players.computer.div.show();
+                }
             },
 
             /**
@@ -174,7 +216,6 @@ $(document).ready(function () {
                             };
                 }
                 // request a response from server
-                var game = this;
                 $.ajax({
                     url: $SCRIPT_ROOT + '/action/respond',
                     method: "PUT",
@@ -185,10 +226,10 @@ $(document).ready(function () {
                     success: function (data) {
                         // get the computer's response square and mark it
                         var resp = data.resp;
-                        var squareId = "#" + resp['row'] + resp['col'];
+                        var squareId = "#" + resp.row + resp.col;
                         $(squareId).addClass("clicked").addClass(s.currentPlayer);
                         // check the game state and re-enable clicking
-                        this.checkGameState(resp['gameState']);
+                        this.checkGameState(resp.gameState, false);
                     }
                 });
             },
@@ -198,11 +239,14 @@ $(document).ready(function () {
              * "try again?" button.
              *
              * @param winner - the symbol of the winning player
+             * @param gameAlreadyStarted - whether or not the game state is being updated
              */
-            endGame: function (winner) {
+            endGame: function (winner, gameAlreadyStarted) {
                 // disable clicking and show the ending messages
                 s.squares.off("click");
-                s.players.human.div.fadeToggle();
+                if (!gameAlreadyStarted) {
+                    s.players.human.div.fadeToggle();
+                }
 
                 // update the messaging to show who won
                 if (winner === s.players.human.symbol) {
@@ -215,8 +259,8 @@ $(document).ready(function () {
                     s.players.human.setMessage(s.tie.message);
                     s.players.computer.setMessage(s.tie.message);
                 }
-                s.players.human.div.show();
                 s.players.computer.div.show();
+                s.players.human.div.show();
 
                 // reset the game if requested
                 var game = this;
@@ -236,28 +280,64 @@ $(document).ready(function () {
              * there is a winner, tie, or the game is not yet over.
              *
              * @param state - a dictionary representing the state of the game
+             * @param gameAlreadyStarted - whether or not the game state is being updated
              */
-            checkGameState: function (state) {
+            checkGameState: function (state, gameAlreadyStarted) {
                 // check for if game is over
-                if (state['gameOver']) {
+                if (state.gameOver) {
                    // if winner highlight the winning squares & set end messaging
-                    if (state["winner"] != s.tie.symbol) {
-                        $.each(state["winLine"], function (i) {
+                    if (state.winner != s.tie.symbol) {
+                        this.endGame(state.winner, gameAlreadyStarted);
+                        $.each(state.winLine, function (i) {
                             setTimeout(function () {
-                                var id = "#" + state["winLine"][i].join("");
+                                var id = "#" + state.winLine[i].join("");
                                 $(id).addClass("win");
                             }, i * 100);
                         });
-                        this.endGame(state["winner"]);
                     } else {
                         // if tie set end messaging appropriately
-                        this.endGame(s.tie.symbol);
+                        this.endGame(s.tie.symbol, gameAlreadyStarted);
                     }
-                } else {
+                } else if (!gameAlreadyStarted) {
                     // otherwise take another turn
                     this.togglePlayer();
                     this.enableClicks();
                 }
+            },
+
+            /**
+             * Sets the state of the game and updates the UI based on the server's
+             * view of the board.
+             */
+            setGameState: function (callback) {
+                // get the game state from the server
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/state',
+                    method: "GET",
+                    dataType: "json",
+                    context: this,
+                    success: function (data) {
+                        // get the state of the board
+                        var resp = data.resp;
+                        var board = resp.gameState.board;
+                        var updatedSquares = [];
+                        // set the appropriate classes for each square
+                        $.each(board, function (r) {
+                            $.each(board, function (c) {
+                                var player = board[r][c];
+                                if (player != null) {
+                                    var id = "#" + r + c;
+                                    $(id).addClass("clicked").addClass(player);
+                                    updatedSquares.push($(id));
+                                }
+                            });
+                        });
+                        // check the game state and keep track of which squares were marked
+                        this.checkGameState(resp.gameState, true);
+                        if (callback != undefined)
+                            return callback(updatedSquares, resp.gameState.gameOver);
+                    }
+                });
             },
 
             /**
@@ -267,14 +347,18 @@ $(document).ready(function () {
              * @param square - a square (div) that was clicked
              */
             takeTurn: function (square) {
-                // allow squares to be clicked if they haven't already been chosen
-                if (!square.hasClass("clicked")) {
-                    // mark the square with the correct symbol
-                    square.addClass("clicked").addClass(s.currentPlayer)
-                    // switch to computer and respond to human
-                    this.togglePlayer();
-                    this.respond(square[0].id);
-                }
+                var game = this;
+                this.setGameState(function (updatedSquares, gameOver) {
+                    var updated = updatedSquares.indexOf(square) > -1;
+                    // allow squares to be clicked if they haven't already been chosen
+                    if (!gameOver && !updated && !square.hasClass("clicked")) {
+                        // mark the square with the correct symbol
+                        square.addClass("clicked").addClass(s.currentPlayer);
+                        // switch to computer and respond to human
+                        game.togglePlayer();
+                        game.respond(square[0].id);
+                    }
+                });
             }
         };
 

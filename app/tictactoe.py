@@ -63,12 +63,28 @@ class TicTacToe:
         the best spot to play, and returns the row and column of that spot.
         """
         if player is None: player = self.computer
+
+        if self.firstMove:
+            return self.respondToFirstMove(player)
+
         loc = Minimax.findNextMove(self, player)
         if loc is None:
             return None
         row, col = loc
         self.move(row, col, player)
         return row, col
+
+    def respondToFirstMove(self, player):
+        self.firstMove = False
+        (r, c, _) = self.lastMove
+        # if in center, place in corner
+        if r == 1 and c == 1:
+            self.move(0, 0, player)
+            return 0, 0
+        # otherwise place in center
+        else:
+            self.move(1, 1, player)
+            return 1, 1
 
     def checkForWin(self, line):
         """
@@ -140,8 +156,14 @@ class TicTacToe:
             winner - the symbol of the winning player (EX or OH), TIE if it is a tie, else None
             winLine - a list of tuples of rows and columns of the winning squares, if a win
         """
+        if self.lastMove == None:
+            currentPlayer = self.human
+        else:
+            currentPlayer = getOppositePlayer(self.lastMove[2])
         (isOver, winner, line) = self.isOver()
-        return {"gameOver": isOver,
+        return {"board": self.board,
+                "currentPlayer": currentPlayer,
+                "gameOver": isOver,
                 "winner": winner,
                 "winLine": line}
 

@@ -25,8 +25,6 @@ Future Work
 -----------
 There are always areas that can be iterated upon and improved.  Possibilities for future improvement include:
 
-- **State across sessions** - right now there is no tracking of sessions, so if the application is opened and played in multiple browsers the UI on each session does not accurately reflect the state of the game on the server.
-- **Optimized algorithm** - right now the first computer move takes a significantly longer amount of time than future moves.  This can be improved by implementing alpha-beta pruning to stop evaluating paths that won't lead to useful results.
 - **UI enhancements** - currently, the human player always goes first and is always an "X".  Future work can allow the human player to choose their symbol and decide whether or not they wish to take the first move.  Also, the premise of the algorithm means that the game isn't very fun.. future work can be to allow two human players, and increase the size and dimension of the board :)
 - **Multi-Browser and mobile support** - some minimal browser testing was done in Chrome, Safari, and Firefox but there are definitely some differences that can be fixed between browsers later on.
 
